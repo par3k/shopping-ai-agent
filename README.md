@@ -25,7 +25,7 @@ docker run -d --name shopping-redis -p 6379:6379 redis:7
 python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # 값을 채웁니다
+# 프로젝트 루트에 .env 파일을 만들고 아래 "환경변수" 표의 키를 채웁니다
 uvicorn app.main:app --reload --port 8001
 ```
 
@@ -35,11 +35,14 @@ API 문서는 `http://localhost:8001/docs`에서 볼 수 있습니다.
 
 | 키 | 설명 |
 |---|---|
-| `DATABASE_URL` | PostgreSQL 접속 주소 (필수) |
+| `DATABASE_URL` | PostgreSQL 접속 주소 (필수). 드라이버를 명시한다: `postgresql+psycopg2://…` |
 | `SECRET_KEY` | JWT 서명 키 (필수) |
 | `REDIS_URL` | Redis 접속 주소 (필수) |
 | `ALGORITHM` | JWT 알고리즘 (기본 `HS256`) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | 토큰 만료 분 (기본 30) |
+| `LOG_DIR` | 로그 디렉토리 (기본: 프로젝트 루트의 `log/`) |
+| `SQL_LOG` | `false`면 SQL 로그를 끈다 (기본 켜짐) |
+| `SQL_LOG_PARAMS` | `true`면 SQL 바인딩 파라미터도 기록 (기본 숨김) |
 
 필수 키가 없으면 서버가 시작할 때 빠진 키 이름을 알려 주며 실패합니다. `.env`는 커밋하지 않습니다.
 
