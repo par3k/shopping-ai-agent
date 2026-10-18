@@ -11,7 +11,8 @@
 - 단계는 사용자가 "이 정도면 됐어"라고 말해야 끝난다. 먼저 종료를 선언하지 않는다.
 
 ## 기술 스택
-- 웹/DB: FastAPI, SQLAlchemy, PostgreSQL(pgvector), JWT(python-jose, bcrypt), Pydantic
+- 웹/DB: FastAPI, SQLAlchemy, PostgreSQL(pgvector), Redis(redis-py), JWT(python-jose, bcrypt), Pydantic
+- Redis 용도: 로그아웃 시 JWT 즉시 무효화(`logout:{jti}` 키, TTL=토큰 남은 시간), 챗 응답 캐시. 장애 시 인증은 503으로 거부하고 캐시는 건너뛴다.
 - AI(후속 단계): OpenAI(gpt-4.1-mini, 임베딩 text-embedding-3-large), LangChain, LangGraph
 
 ## 작업 규칙 (사용자 지시)
@@ -33,7 +34,7 @@
 - 머지 후에는 작업 폴더의 `.env`가 남아 있는지 확인한다. (이전 프로젝트에서 머지 중 `.env`가 삭제된 적이 있다.)
 
 ### Docker
-- 사용자가 따로 요청하지 않으면 Docker(컨테이너, 이미지)를 조작하지 않는다. (`docker run/exec/stop/rm` 모두 포함)
+- 사용자가 따로 요청하지 않으면 Docker(컨테이너, 이미지)를 조작하지 않는다. (`docker run/exec/stop/rm` 모두 포함) Redis 컨테이너도 마찬가지로 사용자가 직접 띄운다.
 - 컨테이너 안에서 해야 하는 작업은 명령어만 안내한다.
 - 서버를 종료할 때는 이 프로젝트에서 직접 띄운 프로세스만 대상으로 한다. 포트(8000) 점유 프로세스를 PID 확인 없이 종료하지 않는다(이전 프로젝트에서 사용자가 직접 띄운 서버를 끈 적이 있다). 서버 테스트는 사용자 서버와 겹치지 않게 다른 포트(예: 8001)로 띄우고, 자기가 띄운 PID만 종료한다.
 
@@ -59,7 +60,9 @@
 - Python 3.13 가상환경: `.venv` (3.14는 일부 패키지 wheel이 없어 사용하지 않음)
 - 실행: `uvicorn app.main:app --reload` (기본 포트 8000, 문서 `/docs`)
 - DB: 사용자가 Docker로 직접 띄운 PostgreSQL(pgvector) 컨테이너. 이전 프로젝트는 호스트 포트 5433을 썼다. 포트와 DB 이름은 `.env`의 `DATABASE_URL`을 따른다.
+- Redis: 사용자가 Docker로 직접 띄운다. 주소는 `.env`의 `REDIS_URL`을 따른다. 테스트는 fakeredis로 돌려서 Redis 없이 실행된다.
 - 마이그레이션 도구는 쓰지 않고 앱 시작 시 `Base.metadata.create_all`로 테이블을 만든다.
 
 ## 변경 이력
+- 2026-10-18: Redis 도입(로그아웃 시 토큰 즉시 무효화, 챗 응답 캐시). 1단계 계획에 Redis 연결과 로그아웃 반영
 - 2026-10-18: 이전 프로젝트(`asiana-ai-workflow`)에서 사용자가 요청해 온 작업 규칙(언어, Git 방식, Docker, 보안, 로깅, AI 단계)을 이 프로젝트 CLAUDE.md로 옮겨 기록
