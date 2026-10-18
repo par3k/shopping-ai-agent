@@ -68,8 +68,27 @@
 - Redis: 사용자가 Docker로 직접 띄운다. 주소는 `.env`의 `REDIS_URL`을 따른다. 테스트는 fakeredis로 돌려서 Redis 없이 실행된다.
 - 마이그레이션 도구는 쓰지 않고 앱 시작 시 `Base.metadata.create_all`로 테이블을 만든다.
 
+## 진행 현황 (세션이 바뀌어도 이어가기 위한 기록, 단계가 진행될 때마다 갱신)
+
+### 1단계: 서버 뼈대 + 회원가입/로그인 — 완료 (2026-10-18, 사용자가 "이 정도면 됐어"로 종료 선언)
+- git 태그 `step-1-login`을 달아 push했다. 이후 단계는 사용자가 시작을 말해야 진행한다. 다음은 2단계(상품·주문)이며 [설계 문서](docs/superpowers/specs/2026-10-18-shopping-ai-agent-design.md)의 단계 구조 표를 따른다. 새 단계는 계획 문서를 `docs/superpowers/plans/`에 만든다.
+- 구현된 API: `POST /members/signup`, `POST /members/login`, `POST /members/logout`(Redis `logout:{jti}`), `GET /members/me`, `GET /health`
+- 인증 정책: 이메일은 소문자로 저장, 비밀번호는 bcrypt, JWT는 HS256에 `jti` 포함. Redis 오류 시 인증은 503으로 거부.
+- 로깅 구현 완료(`app/logging_config.py`, `app/middleware.py`, `api.member` 업무 로그). 로그 디렉토리는 사용자 요청으로 워크스페이스 루트의 `log/`다(`logs/` 아님). 이후 단계의 라우터에도 `api.<이름>` 업무 로그를 같은 방식으로 추가한다.
+- 테스트 31개 통과(`.venv/bin/python -m pytest -q`). DB는 SQLite 인메모리, Redis는 fakeredis, 로그 디렉토리는 임시 폴더(`tests/conftest.py`).
+- 실서버 `curl` 흐름(가입→중복→로그인→me→로그아웃→같은 토큰 401) 확인 완료. 테스트로 만든 회원 행은 삭제했다. `members`에는 사용자 본인 계정(id=1)이 있으니 건드리지 않는다.
+- 블로그 글 작성·게시 완료: `par3k.github.io/_posts/2026-10-18-fastapi-shopping-mall-signup-login-redis-logout.md`. 사용자 요청으로 "트러블슈팅(psycopg)"과 "테스트" 섹션을 뺐고, 사전 설계/단계별 제작 뉘앙스도 뺐다. 글에 남은 "테스트로도 고정해 두었습니다", "테스트가 통과해도…" 문장을 다듬을지는 사용자 답변 대기 중.
+
+### 환경 메모 (값은 적지 않는다)
+- PostgreSQL은 `localhost:5433`, DB 이름 `shopping-ai-agent`(스키마가 아니라 DB 이름이다), 스키마 `public`, 테이블 `members`. 같은 서버에 `postgres`, `myuser`, `ai_agent_db`(이전 프로젝트) DB도 있다. DBeaver에서 안 보이면 연결의 PostgreSQL 탭에서 Show all databases를 켠다.
+- Redis는 `localhost:6379/0`.
+- `DATABASE_URL`은 `postgresql+psycopg2://` 접두사를 써야 한다. SQLAlchemy 2.1은 `postgresql://`이면 psycopg v3를 찾아서 `No module named 'psycopg'`가 난다.
+- `.env.example`에는 아직 `LOG_DIR`, `SQL_LOG`, `SQL_LOG_PARAMS` 키가 없다(선택 항목이라 기본값으로 동작). 필요하면 사용자에게 확인하고 추가한다.
+- 서버 실행은 `.venv/bin/uvicorn app.main:app --reload --port 8000`. 세션이 끝나면 내가 띄운 서버도 같이 끝났다고 보고, 포트 점유 프로세스는 PID 확인 없이 건드리지 않는다.
+
 ## 변경 이력
 - 2026-10-18: Redis 도입(로그아웃 시 토큰 즉시 무효화, 챗 응답 캐시). 1단계 계획에 Redis 연결과 로그아웃 반영
 - 2026-10-18: 로깅 도입(`log/app.log` 롤링, 접근 로그, 업무 로그, SQL 로그). 로그 디렉토리는 사용자 요청으로 `log/`로 정했다
+- 2026-10-18: 1단계 종료(태그 `step-1-login`)와 진행 현황 섹션 추가
 - 2026-10-18: 블로그 포스팅 규칙 추가(사전 설계/단계별 제작 뉘앙스 제외)
 - 2026-10-18: 이전 프로젝트(`asiana-ai-workflow`)에서 사용자가 요청해 온 작업 규칙(언어, Git 방식, Docker, 보안, 로깅, AI 단계)을 이 프로젝트 CLAUDE.md로 옮겨 기록
