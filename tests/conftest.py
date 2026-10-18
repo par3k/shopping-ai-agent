@@ -1,8 +1,10 @@
 import os
+import tempfile
 
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["SECRET_KEY"] = "test-secret"
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
+os.environ["LOG_DIR"] = tempfile.mkdtemp(prefix="shopping-test-log-")
 
 import fakeredis
 import pytest
