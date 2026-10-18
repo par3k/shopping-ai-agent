@@ -44,7 +44,7 @@
 - 키 재발급 여부는 사용자가 판단한다.
 
 ### 로깅 (이전 프로젝트에서 요청한 방식, 해당 단계에서 동일하게 적용)
-- 로그 파일은 롤링한다: `logs/app.log`(10MB x 5개 보관), `print()`·uvicorn·root 로거를 함께 기록. 위치는 `LOG_DIR`로 변경 가능. `logs/`는 `.gitignore` 대상이다.
+- 로그 파일은 롤링한다: `log/app.log`(워크스페이스 루트, 10MB x 5개 보관), `print()`·uvicorn·root 로거를 함께 기록. 위치는 `LOG_DIR`로 변경 가능. `log/`는 `.gitignore` 대상이다.
 - 모든 API 요청을 `api.access` 로그로 기록한다(요청ID, method, path+query, member_id, client, 상태코드, 소요시간). 비밀번호 등이 있을 수 있어 요청 body와 토큰 값은 기록하지 않는다. 응답 헤더에 `X-Request-ID`를 붙인다.
 - 라우터별 업무 로그(`api.member/order/product/document/chat`)를 남긴다: 가입·로그인 성공/실패, 주문 생성/취소, 상품 등록/수정/조회, 문서 추가/수정, 챗 질문(100자)·분류·응답길이.
 - 실행되는 SQL(`sqlalchemy.engine`)은 파일에만 기록한다. 바인딩 파라미터는 `hide_parameters`로 숨기고(`SQL_LOG_PARAMS=true`면 표시), 한 건이 1500자를 넘으면 잘라서 기록한다. `SQL_LOG=false`로 끌 수 있다.
@@ -65,4 +65,5 @@
 
 ## 변경 이력
 - 2026-10-18: Redis 도입(로그아웃 시 토큰 즉시 무효화, 챗 응답 캐시). 1단계 계획에 Redis 연결과 로그아웃 반영
+- 2026-10-18: 로깅 도입(`log/app.log` 롤링, 접근 로그, 업무 로그, SQL 로그). 로그 디렉토리는 사용자 요청으로 `log/`로 정했다
 - 2026-10-18: 이전 프로젝트(`asiana-ai-workflow`)에서 사용자가 요청해 온 작업 규칙(언어, Git 방식, Docker, 보안, 로깅, AI 단계)을 이 프로젝트 CLAUDE.md로 옮겨 기록
