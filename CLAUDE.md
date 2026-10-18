@@ -83,12 +83,13 @@
 - PostgreSQL은 `localhost:5433`, DB 이름 `shopping-ai-agent`(스키마가 아니라 DB 이름이다), 스키마 `public`, 테이블 `members`. 같은 서버에 `postgres`, `myuser`, `ai_agent_db`(이전 프로젝트) DB도 있다. DBeaver에서 안 보이면 연결의 PostgreSQL 탭에서 Show all databases를 켠다.
 - Redis는 `localhost:6379/0`.
 - `DATABASE_URL`은 `postgresql+psycopg2://` 접두사를 써야 한다. SQLAlchemy 2.1은 `postgresql://`이면 psycopg v3를 찾아서 `No module named 'psycopg'`가 난다.
-- `.env.example`에는 아직 `LOG_DIR`, `SQL_LOG`, `SQL_LOG_PARAMS` 키가 없다(선택 항목이라 기본값으로 동작). 필요하면 사용자에게 확인하고 추가한다.
+- `.env.example`은 사용자 요청으로 삭제했다. 다시 만들지 않는다. 환경변수 키 목록은 README의 환경변수 표가 기준이다.
 - 서버 실행은 `.venv/bin/uvicorn app.main:app --reload --port 8000`. 세션이 끝나면 내가 띄운 서버도 같이 끝났다고 보고, 포트 점유 프로세스는 PID 확인 없이 건드리지 않는다.
 
 ## 변경 이력
 - 2026-10-18: Redis 도입(로그아웃 시 토큰 즉시 무효화, 챗 응답 캐시). 1단계 계획에 Redis 연결과 로그아웃 반영
 - 2026-10-18: 로깅 도입(`log/app.log` 롤링, 접근 로그, 업무 로그, SQL 로그). 로그 디렉토리는 사용자 요청으로 `log/`로 정했다
+- 2026-10-18: `.env.example` 삭제(사용자 요청), README 환경변수 표로 대체
 - 2026-10-18: 1단계 종료(태그 `step-1-login`)와 진행 현황 섹션 추가
 - 2026-10-18: 블로그 포스팅 규칙 추가(사전 설계/단계별 제작 뉘앙스 제외)
 - 2026-10-18: 이전 프로젝트(`asiana-ai-workflow`)에서 사용자가 요청해 온 작업 규칙(언어, Git 방식, Docker, 보안, 로깅, AI 단계)을 이 프로젝트 CLAUDE.md로 옮겨 기록
