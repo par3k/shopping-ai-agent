@@ -21,7 +21,8 @@
 - 아직 안 쓰는 기능이 미리 들어가 있어 글의 흐름을 깨는 것.
 
 ## 제약
-- 기술 스택: FastAPI, SQLAlchemy, PostgreSQL(pgvector), JWT(python-jose, bcrypt), Pydantic. AI 단계에서는 OpenAI(gpt-4.1-mini, text-embedding-3-large), LangChain, LangGraph. *(스택 선택은 내 기본값)*
+- 기술 스택: FastAPI, SQLAlchemy, PostgreSQL(pgvector), Redis, JWT(python-jose, bcrypt), Pydantic. AI 단계에서는 OpenAI(gpt-4.1-mini, text-embedding-3-large), LangChain, LangGraph. *(스택 선택은 내 기본값, Redis는 사용자 요청)*
+- Redis는 두 가지 용도로 쓴다(사용자 결정): 로그아웃 시 JWT 즉시 무효화(1단계), 챗 응답 캐시(챗 단계). Redis 장애 시 인증은 요청을 거부(503)하고, 캐시는 건너뛰고 LLM을 직접 호출한다.
 - `.env`는 커밋하지 않는다. 키 이름만 문서에 적고 값은 적지 않는다.
 - Docker 컨테이너·이미지는 사용자가 요청하지 않으면 조작하지 않는다. 필요한 명령어는 안내만 한다.
 - 서버 테스트는 사용자의 서버와 겹치지 않는 포트로 띄우고, 직접 띄운 PID만 종료한다.
@@ -31,7 +32,7 @@
 
 | 단계 | 내용 |
 |---|---|
-| 1 | 서버 뼈대, DB 연결, 회원가입/로그인(JWT) |
+| 1 | 서버 뼈대, DB·Redis 연결, 회원가입/로그인(JWT)/로그아웃(Redis로 즉시 무효화) |
 | 2 | 기본 쇼핑몰 API: 상품·주문 조회, 구매 등 |
 | 3 | RAG: 벡터 DB에 문서 수집·검색, **`/chats` 도입** (정책 질문에 답변) |
 | 4 이후 | 챗이 2단계 기능을 쓰도록 QUERY/ACTION 연결, LangGraph, 실행 전 사용자 확인(HITL), 시맨틱 캐시 등을 하나씩 추가 |
@@ -53,4 +54,6 @@
 1. 폴더명 `shopping-ai-agent`.
 2. 파인튜닝과 n8n은 범위 밖.
 3. 태그 이름 형식 `step-N-<주제>`.
-4. 기술 스택은 FastAPI, SQLAlchemy, PostgreSQL(pgvector), JWT, OpenAI, LangChain/LangGraph.
+4. 기술 스택은 FastAPI, SQLAlchemy, PostgreSQL(pgvector), Redis, JWT, OpenAI, LangChain/LangGraph.
+5. Redis 장애 시 동작: 인증은 503으로 거부, 캐시는 건너뜀.
+6. 챗 응답 캐시는 안티 목표(쓰지 않는 기능을 미리 넣지 않는다)에 따라 1단계에 넣지 않고 챗 단계에서 추가한다. 1단계는 Redis 연결과 로그아웃만 만든다.
